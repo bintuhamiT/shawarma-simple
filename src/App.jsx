@@ -3,6 +3,19 @@ import { Button } from './components/ui/button'
 import { Card, CardContent } from './components/ui/card'
 import { Badge } from './components/ui/badge'
 import { Star, MapPin, Phone, Mail, Clock, ChefHat, Leaf, Zap, Users } from 'lucide-react'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './components/ui/accordion'
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from './components/ui/alert-dialog'
+import { Alert, AlertTitle, AlertDescription } from './components/ui/alert'
 import './App.css'
 
 // Import images
@@ -21,6 +34,14 @@ function App() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [activeCategory, setActiveCategory] = useState('all')
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isAlertVisible, setIsAlertVisible] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: '',
+  })
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,11 +51,39 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  useEffect(() => {
+    if (isAlertVisible) {
+      const timer = setTimeout(() => {
+        setIsAlertVisible(false)
+      }, 3000) // Hide alert after 3 seconds
+      return () => clearTimeout(timer)
+    }
+  }, [isAlertVisible])
+
   const scrollToSection = (sectionId) => {
     const element = document.getElementById(sectionId)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
     }
+  }
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault()
+    setIsDialogOpen(true)
+  }
+
+  const confirmFormSubmission = () => {
+    // Simulate form submission (e.g., API call)
+    console.log('Form submitted:', formData)
+    setIsDialogOpen(false)
+    setIsAlertVisible(true)
+    // Reset form
+    setFormData({ name: '', email: '', phone: '', message: '' })
   }
 
   const menuItems = [
@@ -122,6 +171,29 @@ function App() {
     }
   ]
 
+  const faqs = [
+    {
+      id: 'faq1',
+      question: 'ما هي المكونات المستخدمة في شاورما الأصالة؟',
+      answer: 'نستخدم لحوم طازجة يومياً، خضروات محلية، وصلصات خاصة محضرة بعناية لضمان الطعم الأصيل والجودة العالية.'
+    },
+    {
+      id: 'faq2',
+      question: 'هل تقدمون خدمة التوصيل؟',
+      answer: 'نعم، نقدم خدمة التوصيل داخل مدينة الرياض. يمكنك الطلب عبر موقعنا الإلكتروني أو الاتصال بنا مباشرة.'
+    },
+    {
+      id: 'faq3',
+      question: 'هل يمكن تخصيص الطلبات (مثل إزالة مكون معين)؟',
+      answer: 'بالتأكيد! يمكنك تخصيص طلبك بإزالة أو إضافة أي مكون حسب رغبتك. فقط أخبرنا عند الطلب.'
+    },
+    {
+      id: 'faq4',
+      question: 'ما هي ساعات العمل؟',
+      answer: 'نعمل من السبت إلى الخميس من 11:00 صباحاً حتى 12:00 منتصف الليل، والجمعة من 2:00 ظهراً حتى 12:00 منتصف الليل.'
+    }
+  ]
+
   const filteredItems = activeCategory === 'all' 
     ? menuItems 
     : menuItems.filter(item => item.category === activeCategory)
@@ -162,6 +234,12 @@ function App() {
                 className="text-gray-700 hover:text-red-600 transition-colors"
               >
                 آراء العملاء
+              </button>
+              <button 
+                onClick={() => scrollToSection('faq')}
+                className="text-gray-700 hover:text-red-600 transition-colors"
+              >
+                الأسئلة الشائعة
               </button>
               <button 
                 onClick={() => scrollToSection('contact')}
@@ -395,6 +473,33 @@ function App() {
         </div>
       </section>
 
+      {/* FAQ Section */}
+      <section id="faq" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4 text-gradient">الأسئلة الشائعة</h2>
+            <p className="text-lg text-gray-600">
+              إجابات على أكثر الأسئلة شيوعاً حول مطعمنا وخدماتنا
+            </p>
+          </div>
+
+          <div className="max-w-3xl mx-auto">
+            <Accordion type="single" collapsible className="w-full">
+              {faqs.map(faq => (
+                <AccordionItem key={faq.id} value={faq.id} className="border-border">
+                  <AccordionTrigger className="text-lg font-semibold text-primary-red hover:text-orange-500">
+                    {faq.question}
+                  </AccordionTrigger>
+                  <AccordionContent className="text-gray-700 leading-relaxed">
+                    {faq.answer}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </div>
+      </section>
+
       {/* Contact Section */}
       <section id="contact" className="py-20 bg-gradient-to-r from-red-600 to-orange-500 text-white">
         <div className="container mx-auto px-4">
@@ -442,30 +547,73 @@ function App() {
 
             <Card className="p-6">
               <h3 className="text-xl font-bold mb-4 text-gray-800">أرسل لنا رسالة</h3>
-              <form className="space-y-4">
+              {isAlertVisible && (
+                <Alert className="mb-4 bg-secondary-beige text-primary-red">
+                  <AlertTitle>تم إرسال الرسالة!</AlertTitle>
+                  <AlertDescription>شكراً لتواصلك معنا. سنرد عليك قريباً.</AlertDescription>
+                </Alert>
+              )}
+              <form className="space-y-4" onSubmit={handleFormSubmit}>
                 <input
                   type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleFormChange}
                   placeholder="الاسم الكامل"
                   className="w-full p-3 border rounded-lg text-gray-800"
+                  required
                 />
                 <input
                   type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleFormChange}
                   placeholder="البريد الإلكتروني"
                   className="w-full p-3 border rounded-lg text-gray-800"
+                  required
                 />
                 <input
                   type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleFormChange}
                   placeholder="رقم الهاتف"
                   className="w-full p-3 border rounded-lg text-gray-800"
                 />
                 <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleFormChange}
                   placeholder="رسالتك..."
                   rows={4}
                   className="w-full p-3 border rounded-lg text-gray-800"
+                  required
                 ></textarea>
-                <Button className="w-full btn-primary">
-                  إرسال الرسالة
-                </Button>
+                <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <AlertDialogTrigger asChild>
+                    <Button type="submit" className="w-full btn-primary">
+                      إرسال الرسالة
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-gradient text-xl">
+                        تأكيد إرسال الرسالة
+                      </AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-600">
+                        هل أنت متأكد من إرسال هذه الرسالة؟ سنتواصل معك قريباً بناءً على المعلومات المقدمة.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="border-primary-red text-primary-red hover:bg-gray-100">
+                        إلغاء
+                      </AlertDialogCancel>
+                      <AlertDialogAction onClick={confirmFormSubmission} className="btn-primary">
+                        تأكيد
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </form>
             </Card>
           </div>
@@ -489,6 +637,7 @@ function App() {
                 <button onClick={() => scrollToSection('home')} className="block text-gray-400 hover:text-white">الرئيسية</button>
                 <button onClick={() => scrollToSection('about')} className="block text-gray-400 hover:text-white">عن المطعم</button>
                 <button onClick={() => scrollToSection('menu')} className="block text-gray-400 hover:text-white">القائمة</button>
+                <button onClick={() => scrollToSection('faq')} className="block text-gray-400 hover:text-white">الأسئلة الشائعة</button>
                 <button onClick={() => scrollToSection('contact')} className="block text-gray-400 hover:text-white">اتصل بنا</button>
               </div>
             </div>
@@ -521,4 +670,3 @@ function App() {
 }
 
 export default App
-
