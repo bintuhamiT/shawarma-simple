@@ -2,8 +2,8 @@ import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { gsap } from 'gsap';
 
-// A placeholder for your video file. You should place your video in the `public` folder.
-const heroVideo = '/shawarma-video.mp4'; 
+// Import the original hero image
+import heroImage from '../assets/QkRrgSs54Md7.jpg';
 
 function HeroSection({ scrollToSection }) {
   const sectionRef = useRef(null);
@@ -18,7 +18,7 @@ function HeroSection({ scrollToSection }) {
 
     // --- 1. Entrance Animation ---
     const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.from(sectionEl.querySelector('.video-background'), { opacity: 0, duration: 1.5 })
+    tl.from(sectionEl.querySelector('.image-background'), { opacity: 0, scale: 1.1, duration: 1.5 })
       .from(titleRef.current, { opacity: 0, y: 50, duration: 1 }, "-=0.8")
       .from(textRef.current, { opacity: 0, y: 40, duration: 0.8 }, "-=0.6")
       .from(buttonsRef.current, { opacity: 0, y: 30, duration: 0.6 }, "-=0.5");
@@ -28,7 +28,6 @@ function HeroSection({ scrollToSection }) {
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
       
-      // Calculate movement ratios (-1 to 1)
       const moveX = (clientX / offsetWidth - 0.5) * 2;
       const moveY = (clientY / offsetHeight - 0.5) * 2;
 
@@ -48,20 +47,15 @@ function HeroSection({ scrollToSection }) {
       id="home" 
       className="relative h-screen flex items-center justify-center text-white overflow-hidden"
     >
-      {/* Video Background */}
-      <div className="video-background absolute inset-0 z-0">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline
+      {/* Image Background */}
+      <div className="image-background absolute inset-0 z-0">
+        <img 
+          src={heroImage}
+          alt="شاورما شهية"
           className="w-full h-full object-cover"
-          src={heroVideo}
-        >
-          Your browser does not support the video tag.
-        </video>
+        />
         {/* Gradient Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
       </div>
 
       {/* Content */}
