@@ -147,3 +147,62 @@
     @apply shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
   }
 }
+
+/* في نهاية ملف src/App.css */
+
+/* Professional Header Enhancements */
+.btn-primary.group:hover .group-hover\:hidden {
+  display: none;
+}
+
+.btn-primary.group:hover .hidden {
+  display: block !important; /* Use !important to override other utility classes if needed */
+}
+
+/* Advanced Menu Card Styles */
+.menu-card {
+  transform-style: preserve-3d;
+  transition: border-color 0.3s ease;
+  position: relative; /* Needed for the pseudo-element */
+}
+
+.menu-card::before,
+.menu-card::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none; /* Important */
+}
+
+/* Glow effect */
+.menu-card::before {
+  background: radial-gradient(
+    300px circle at var(--glow-x) var(--glow-y),
+    rgba(239, 68, 68, 0.15), /* red-500 with alpha */
+    transparent 40%
+  );
+  z-index: 1;
+}
+
+/* Border glow effect */
+.menu-card::after {
+  background: radial-gradient(
+    200px circle at var(--glow-x) var(--glow-y),
+    rgba(239, 68, 68, 0.4), /* red-500 with more alpha */
+    transparent 40%
+  );
+  z-index: -1; /* Behind the card content */
+  filter: blur(20px);
+}
+
+.menu-card-container:hover .menu-card::before,
+.menu-card-container:hover .menu-card::after {
+  opacity: 1;
+}
+
