@@ -3,9 +3,9 @@ import { Button } from './ui/button';
 import { gsap } from 'gsap';
 
 // Import the three images you want to use
-import image1 from '../assets/QkRrgSs54Md7.jpg'; // Main image
-import image2 from '../assets.Qsbtw2M8iRQq.jpg'; // Secondary image 1
-import image3 from '../assets/dag3MS2UpAjk.jpg'; // Secondary image 2
+import image1 from '../assets/561NAXOamYdP.jpg'; // Main image
+import image2 from '../assets/QkRrgSs54Md7.jpg'; // Secondary image 1
+import image3 from '../assets/SINTLs9LRXo4.jpg'; // Secondary image 2
 
 function HeroSection({ scrollToSection }) {
   const sectionRef = useRef(null);
