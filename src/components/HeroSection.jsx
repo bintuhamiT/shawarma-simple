@@ -2,28 +2,36 @@ import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { gsap } from 'gsap';
 
-// Import the original hero image
-import heroImage from '../assets/QkRrgSs54Md7.jpg';
+// Import the three images you want to use
+import image1 from '../assets/QkRrgSs54Md7.jpg'; // Main image
+import image2 from '../assets.Qsbtw2M8iRQq.jpg'; // Secondary image 1
+import image3 from '../assets/dag3MS2UpAjk.jpg'; // Secondary image 2
 
 function HeroSection({ scrollToSection }) {
   const sectionRef = useRef(null);
-  const titleRef = useRef(null);
-  const textRef = useRef(null);
-  const buttonsRef = useRef(null);
+  const contentRef = useRef(null);
+  const image1Ref = useRef(null);
+  const image2Ref = useRef(null);
+  const image3Ref = useRef(null);
 
-  // --- Cinematic Entrance & Parallax Effect ---
   useEffect(() => {
     const sectionEl = sectionRef.current;
     if (!sectionEl) return;
 
-    // --- 1. Entrance Animation ---
-    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
-    tl.from(sectionEl.querySelector('.image-background'), { opacity: 0, scale: 1.1, duration: 1.5 })
-      .from(titleRef.current, { opacity: 0, y: 50, duration: 1 }, "-=0.8")
-      .from(textRef.current, { opacity: 0, y: 40, duration: 0.8 }, "-=0.6")
-      .from(buttonsRef.current, { opacity: 0, y: 30, duration: 0.6 }, "-=0.5");
+    const images = [image1Ref.current, image2Ref.current, image3Ref.current];
+    const content = contentRef.current;
 
-    // --- 2. Parallax Mouse Effect ---
+    // --- 1. Harmonized Entrance Animation ---
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out', duration: 1.5 } });
+    tl.from(images, {
+        autoAlpha: 0,
+        scale: 0.8,
+        y: 100,
+        stagger: 0.2,
+      })
+      .from(content, { autoAlpha: 0, y: 50 }, "-=1");
+
+    // --- 2. Enhanced 3D Parallax Mouse Effect ---
     const onMouseMove = (e) => {
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
@@ -31,10 +39,18 @@ function HeroSection({ scrollToSection }) {
       const moveX = (clientX / offsetWidth - 0.5) * 2;
       const moveY = (clientY / offsetHeight - 0.5) * 2;
 
-      // Animate elements with different "depths"
-      gsap.to(titleRef.current, { x: -moveX * 20, y: -moveY * 10, duration: 1, ease: 'power2.out' });
-      gsap.to(textRef.current, { x: -moveX * 15, y: -moveY * 8, duration: 1, ease: 'power2.out' });
-      gsap.to(buttonsRef.current, { x: -moveX * 10, y: -moveY * 5, duration: 1, ease: 'power2.out' });
+      // Animate each layer with a different "depth" (parallax intensity)
+      // The content (text) moves the most, feeling closest.
+      gsap.to(content, { x: -moveX * 30, y: -moveY * 15, duration: 1.2, ease: 'power2.out' });
+      
+      // Image 1 (main) moves a bit.
+      gsap.to(image1Ref.current, { x: moveX * 25, y: moveY * 20, rotate: -moveX * 5, duration: 1.2, ease: 'power2.out' });
+      
+      // Image 2 (secondary) moves less, feeling further away.
+      gsap.to(image2Ref.current, { x: -moveX * 15, y: -moveY * 10, rotate: moveX * 3, duration: 1.2, ease: 'power2.out' });
+      
+      // Image 3 (furthest) moves the least.
+      gsap.to(image3Ref.current, { x: moveX * 10, y: moveY * 5, rotate: -moveX * 2, duration: 1.2, ease: 'power2.out' });
     };
 
     sectionEl.addEventListener('mousemove', onMouseMove);
@@ -45,28 +61,45 @@ function HeroSection({ scrollToSection }) {
     <section 
       ref={sectionRef} 
       id="home" 
-      className="relative h-screen flex items-center justify-center text-white overflow-hidden"
+      className="relative h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white overflow-hidden"
     >
-      {/* Image Background */}
-      <div className="image-background absolute inset-0 z-0">
+      {/* This container will hold our 3D image composition */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        {/* Image 1: Main, slightly rotated */}
         <img 
-          src={heroImage}
+          ref={image1Ref}
+          src={image1}
           alt="شاورما شهية"
-          className="w-full h-full object-cover"
+          className="absolute w-[45vw] max-w-[500px] h-auto top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl shadow-2xl"
+          style={{ transform: 'rotate(-5deg)' }}
         />
-        {/* Gradient Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+        {/* Image 2: Secondary, top-left, different angle */}
+        <img 
+          ref={image2Ref}
+          src={image2}
+          alt="طبق شاورما"
+          className="absolute w-[25vw] max-w-[250px] h-auto top-[10%] left-[15%] rounded-lg shadow-xl"
+          style={{ transform: 'rotate(8deg)' }}
+        />
+        {/* Image 3: Secondary, bottom-right, another angle */}
+        <img 
+          ref={image3Ref}
+          src={image3}
+          alt="تحضير الشاورما"
+          className="absolute w-[30vw] max-w-[300px] h-auto bottom-[8%] right-[12%] rounded-lg shadow-xl"
+          style={{ transform: 'rotate(-12deg)' }}
+        />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 text-center px-4">
-        <h1 ref={titleRef} className="text-5xl md:text-7xl font-extrabold mb-6 text-shadow-lg">
-          فن الشاورما الأصيل
+      {/* Content Layer - with a semi-transparent background for readability */}
+      <div ref={contentRef} className="relative z-10 text-center p-8 rounded-2xl bg-black/30 backdrop-blur-md border border-white/10">
+        <h1 className="text-5xl md:text-7xl font-extrabold mb-6 text-shadow-lg">
+          أبعاد جديدة للنكهة
         </h1>
-        <p ref={textRef} className="text-xl md:text-2xl mb-10 max-w-3xl mx-auto text-gray-200 text-shadow-md">
-          نقدم لك تجربة تتجاوز التوقعات، حيث تلتقي أجود المكونات بشغف الطهاة لتقديم تحفة فنية في كل طبق.
+        <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-200 text-shadow-md">
+          كل صورة تحكي جزءاً من قصتنا. اكتشف عالماً من الطعم الأصيل والإبداع في كل طبق.
         </p>
-        <div ref={buttonsRef} className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={() => scrollToSection('menu')}
             className="bg-red-600 hover:bg-red-700 text-white rounded-full px-10 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-transform duration-300"
@@ -76,7 +109,7 @@ function HeroSection({ scrollToSection }) {
           <Button 
             onClick={() => scrollToSection('contact')}
             variant="outline"
-            className="border-2 border-white text-white hover:bg-white hover:text-black rounded-full px-10 py-3 text-lg font-semibold shadow-lg backdrop-blur-sm transform hover:scale-105 transition-all duration-300"
+            className="border-2 border-white text-white hover:bg-white hover:text-black rounded-full px-10 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300"
           >
             احجز طاولتك
           </Button>
