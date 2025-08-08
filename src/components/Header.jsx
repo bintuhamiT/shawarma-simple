@@ -4,11 +4,6 @@ import { ChefHat, Home, Info, Star, Phone, ShoppingCart } from 'lucide-react';
 
 // --- GSAP and Plugins ---
 import { gsap } from 'gsap';
-import { Flip } from 'gsap/Flip';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin';
-
-gsap.registerPlugin(Flip, ScrollTrigger, ScrollToPlugin);
 
 const navItems = [
   { id: 'home', label: 'الرئيسية', icon: Home },
@@ -41,32 +36,22 @@ function Header({ scrollToSection, totalCartItems }) {
   useEffect(() => {
     const activeLinkEl = navLinksRef.current[activeSection];
     if (activeLinkEl && activePillRef.current) {
-      const state = Flip.getState(activePillRef.current);
-      activeLinkEl.appendChild(activePillRef.current);
-      Flip.from(state, {
+      const linkRect = activeLinkEl.getBoundingClientRect();
+      const containerRect = activeLinkEl.parentElement.getBoundingClientRect();
+      
+      gsap.to(activePillRef.current, {
+        x: linkRect.left - containerRect.left,
+        width: linkRect.width,
         duration: 0.6,
-        ease: 'power4.inOut',
-        absolute: true,
+        ease: 'power4.inOut'
       });
     }
   }, [activeSection]);
 
-  // --- Logic 3: Scroll-based Active Section Tracking ---
+  // --- Logic 3: Simple Active Section Tracking ---
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const triggers = navItems.map(item => {
-        const sectionEl = document.getElementById(item.id);
-        if (!sectionEl) return null;
-        return ScrollTrigger.create({
-          trigger: sectionEl,
-          start: 'top center+=100',
-          end: 'bottom center-=100',
-          onToggle: self => self.isActive && setActiveSection(item.id),
-        });
-      }).filter(Boolean);
-      return () => triggers.forEach(trigger => trigger.kill());
-    }, 500);
-    return () => clearTimeout(timer);
+    // Set initial active section
+    setActiveSection('home');
   }, []);
 
   const handleNavClick = (sectionId) => {
@@ -74,16 +59,10 @@ function Header({ scrollToSection, totalCartItems }) {
     scrollToSection(sectionId);
   };
 
-  // --- Logic 4: Handle Hover for Adaptive Layout ---
-  const handleHover = () => {
-    // This function triggers a resize check for the Flip animation
-    Flip.revert(); // Re-calculates positions and sizes
-  };
-
   return (
     <header
       ref={headerRef}
-      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full max-w-max px-4"
+      className="fixed top-0 left-1/2 -translate-x-1/2 z-50 w-full max-w-max px-4 pt-4"
     >
       <nav className="relative w-full mx-auto">
         <div className="flex items-center justify-center gap-3 bg-black/60 text-white h-16 px-4 rounded-full shadow-2xl border border-white/10 backdrop-blur-xl">
@@ -105,8 +84,6 @@ function Header({ scrollToSection, totalCartItems }) {
                 key={item.id}
                 ref={(el) => (navLinksRef.current[item.id] = el)}
                 onClick={() => handleNavClick(item.id)}
-                onMouseEnter={handleHover}
-                onMouseLeave={handleHover}
                 className="nav-item relative px-2 py-2 text-sm font-medium rounded-full z-10 flex items-center justify-center gap-2 group"
                 style={{ opacity: 0 }}
               >
@@ -118,7 +95,7 @@ function Header({ scrollToSection, totalCartItems }) {
               </button>
             ))}
             {/* The magic moving pill */}
-            <div ref={activePillRef} className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-500 rounded-full shadow-md" style={{ zIndex: 0 }} />
+            <div ref={activePillRef} className="absolute top-0 left-0 h-full bg-gradient-to-r from-red-600 to-orange-500 rounded-full shadow-md" style={{ zIndex: 1 }} />
           </div>
 
           {/* Separator */}
