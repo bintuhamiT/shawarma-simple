@@ -1,63 +1,57 @@
+// HeroSection.jsx
+
 import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { gsap } from 'gsap';
+import { Rocket } from 'lucide-react'; // أيقونة للزر
 
+// --- 1. استخدم صور بدون خلفية (PNG) ---
+// هذه صور مقترحة، يمكنك استبدالها بصورك الخاصة
 import image1 from '../assets/561NAXOamYdP.jpg';
 import image2 from '../assets/QkRrgSs54Md7.jpg';
 import image3 from '../assets/SINTLs9LRXo4.jpg';
 
-function HeroSection({ scrollToSection }) {
+function HeroSection({ scrollToSection } ) {
   const sectionRef = useRef(null);
   const contentRef = useRef(null);
-  const image1Ref = useRef(null);
-  const image2Ref = useRef(null);
-  const image3Ref = useRef(null);
-  const starsRef = useRef(null);
+  const imagesRef = useRef([]); // مصفوفة لتخزين مراجع الصور
 
   useEffect(() => {
     const sectionEl = sectionRef.current;
-    if (!sectionEl) return;
+    const contentEl = contentRef.current;
+    const imageEls = imagesRef.current;
 
-    const images = [image1Ref.current, image2Ref.current, image3Ref.current];
-    const content = contentRef.current;
-    const stars = starsRef.current;
+    // --- 2. تحسين الأنيميشن: حركة دخول أكثر سلاسة وتأثيراً ---
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out', duration: 1.5 }
+    });
 
-    // --- 1. "Warp Speed" Entrance Animation ---
-    const tl = gsap.timeline({ defaults: { ease: 'power4.out', duration: 2 } });
-    tl.from(stars, { scale: 0.1, opacity: 0, rotation: -180 })
-      .from(images, {
+    tl.from(sectionEl, { autoAlpha: 0 }) // ظهور القسم بالكامل
+      .from(contentEl.children, { // ظهور محتوى النص بشكل متتابع
         autoAlpha: 0,
-        scale: 0,
-        filter: 'blur(50px)',
-        stagger: 0.3,
-      }, "-=1.5")
-      .from(content, { autoAlpha: 0, filter: 'blur(20px)', y: 50 }, "-=1.5");
+        y: 50,
+        stagger: 0.2,
+      }, "-=0.5")
+      .from(imageEls, { // ظهور الكواكب بحركة جذابة
+        autoAlpha: 0,
+        scale: 0.5,
+        filter: 'blur(20px)',
+        stagger: 0.2,
+      }, "-=1");
 
-    // --- 2. "Gravitational" Parallax & Warp Effect ---
+    // --- 3. تحسين حركة الـ Parallax لجعلها طبيعية أكثر ---
     const onMouseMove = (e) => {
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
       
-      const moveX = (clientX / offsetWidth - 0.5) * 2;
-      const moveY = (clientY / offsetHeight - 0.5) * 2;
+      // حساب الحركة بنسبة مئوية من -0.5 إلى 0.5
+      const moveX = (clientX / offsetWidth - 0.5);
+      const moveY = (clientY / offsetHeight - 0.5);
 
-      // Animate planets with gravitational pull
-      gsap.to(image1Ref.current, { x: moveX * 40, y: moveY * 30, rotate: -moveX * 8, duration: 2, ease: 'power3.out' });
-      gsap.to(image2Ref.current, { x: -moveX * 25, y: -moveY * 20, rotate: moveX * 5, duration: 2, ease: 'power3.out' });
-      gsap.to(image3Ref.current, { x: moveX * 15, y: moveY * 10, rotate: -moveX * 3, duration: 2, ease: 'power3.out' });
-      
-      // Animate the content (UI)
-      gsap.to(content, { x: -moveX * 50, y: -moveY * 25, duration: 2, ease: 'power3.out' });
-
-      // Warp effect on the starfield
-      gsap.to(stars, {
-        x: -moveX * 100,
-        y: -moveY * 50,
-        scale: 1 + Math.abs(moveX) * 0.2, // Stars stretch horizontally
-        rotate: -moveX * 10,
-        duration: 2,
-        ease: 'power3.out'
-      });
+      // تحريك العناصر بسرعات مختلفة لإعطاء إحساس بالعمق
+      gsap.to(imageEls[0], { x: -moveX * 50, y: -moveY * 30, rotate: -moveX * 5, duration: 1.2, ease: 'power2.out' });
+      gsap.to(imageEls[1], { x: moveX * 30, y: moveY * 20, rotate: moveX * 3, duration: 1.2, ease: 'power2.out' });
+      gsap.to(imageEls[2], { x: -moveX * 20, y: -moveY * 40, rotate: -moveX * 2, duration: 1.2, ease: 'power2.out' });
     };
 
     sectionEl.addEventListener('mousemove', onMouseMove);
@@ -68,51 +62,66 @@ function HeroSection({ scrollToSection }) {
     <section 
       ref={sectionRef} 
       id="home" 
-      className="relative h-screen flex items-center justify-center bg-black text-white overflow-hidden"
+      // --- 4. تحسين الخلفية: استخدام تدرج لوني بدلاً من الأسود الصريح ---
+      className="relative h-screen flex items-center justify-center bg-gradient-to-b from-[#000000] to-[#12050a] text-white overflow-hidden"
     >
-      {/* Starfield Background */}
-      <div ref={starsRef} className="stars-background absolute inset-[-20%]"></div>
+      {/* خلفية نجوم متحركة لإضافة عمق */}
+      <div className="stars-background absolute inset-0 opacity-50"></div>
       
-      {/* Nebula/Glow effect */}
-      <div className="nebula-glow absolute inset-0"></div>
-
-      {/* Planets Container */}
+      {/* --- 5. فصل الصور عن المحتوى بشكل كامل لحل مشكلة التداخل --- */}
+      {/* حاوية الصور (الكواكب) */}
       <div className="absolute inset-0 w-full h-full z-0">
-        <div ref={image1Ref} className="planet-container absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] max-w-[450px]">
-          <img src={image1} alt="كوكب الشاورما الرئيسي" className="planet-image"/>
-          <div className="planet-atmosphere atmosphere-1"></div>
-        </div>
-        <div ref={image2Ref} className="planet-container absolute top-[15%] left-[20%] w-[20vw] max-w-[200px]">
-          <img src={image2} alt="قمر الشاورما الأول" className="planet-image"/>
-          <div className="planet-atmosphere atmosphere-2"></div>
-        </div>
-        <div ref={image3Ref} className="planet-container absolute bottom-[12%] right-[18%] w-[25vw] max-w-[250px]">
-          <img src={image3} alt="قمر الشاورما الثاني" className="planet-image"/>
-          <div className="planet-atmosphere atmosphere-3"></div>
-        </div>
+        <img 
+          ref={el => imagesRef.current[0] = el}
+          src={image1} 
+          alt="كوكب الشاورما" 
+          className="absolute top-[50%] left-[15%] w-[35vw] max-w-[400px] drop-shadow-2xl"
+        />
+        <img 
+          ref={el => imagesRef.current[1] = el}
+          src={image2} 
+          alt="قمر البطاطس" 
+          className="absolute top-[15%] right-[20%] w-[18vw] max-w-[180px] drop-shadow-xl"
+        />
+        <img 
+          ref={el => imagesRef.current[2] = el}
+          src={image3} 
+          alt="قمر الخضروات" 
+          className="absolute bottom-[10%] right-[45%] w-[22vw] max-w-[220px] drop-shadow-lg"
+        />
       </div>
 
-      {/* HUD / Content Layer */}
+      {/* حاوية المحتوى (النص والأزرار) */}
       <div ref={contentRef} className="relative z-10 text-center p-8">
-        <h1 className="text-5xl md:text-7xl font-black mb-6 uppercase tracking-widest text-shadow-glow">
-          اكتشف المجرة
+        {/* --- 6. تحسين وضوح النص: إضافة ظل واضح وتباين أعلى --- */}
+        <h1 
+          className="text-5xl md:text-7xl font-black mb-4 uppercase tracking-wider"
+          style={{ textShadow: '0 4px 15px rgba(0,0,0,0.7)' }}
+        >
+          مجرّة الشاورما
         </h1>
-        <p className="text-xl md:text-2xl mb-10 max-w-2xl mx-auto text-gray-300 font-light text-shadow-md">
-          رحلة إلى قلب النكهات الكونية، حيث كل طبق هو عالم جديد من الإبداع.
+        <p 
+          className="text-lg md:text-xl mb-8 max-w-xl mx-auto text-gray-200"
+          style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}
+        >
+          انطلق في رحلة نكهات كونية لا مثيل لها، حيث كل قضمة تأخذك إلى عالم آخر.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button 
             onClick={() => scrollToSection('menu')}
-            className="hud-button bg-red-600/80 border-red-500 text-white"
+            size="lg"
+            className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-lg transform hover:scale-105 transition-transform duration-300"
           >
-            بدء الرحلة (القائمة)
+            <Rocket className="ml-2 h-5 w-5" />
+            استكشف القائمة
           </Button>
           <Button 
             onClick={() => scrollToSection('contact')}
+            size="lg"
             variant="outline"
-            className="hud-button border-white/80 text-white"
+            className="border-white/80 hover:bg-white/10 text-white font-bold text-lg shadow-md transform hover:scale-105 transition-transform duration-300"
           >
-            التواصل مع القاعدة
+            تواصل معنا
           </Button>
         </div>
       </div>
