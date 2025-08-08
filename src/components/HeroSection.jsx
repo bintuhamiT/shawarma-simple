@@ -3,10 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { gsap } from 'gsap';
-import { Rocket } from 'lucide-react'; // أيقونة للزر
+import { Rocket } from 'lucide-react';
 
-// --- 1. استخدم صور بدون خلفية (PNG) ---
-// هذه صور مقترحة، يمكنك استبدالها بصورك الخاصة
+// --- استخدم صور بدون خلفية (PNG) لتظهر "طائرة" ---
 import image1 from '../assets/561NAXOamYdP.jpg';
 import image2 from '../assets/QkRrgSs54Md7.jpg';
 import image3 from '../assets/SINTLs9LRXo4.jpg';
@@ -14,41 +13,39 @@ import image3 from '../assets/SINTLs9LRXo4.jpg';
 function HeroSection({ scrollToSection } ) {
   const sectionRef = useRef(null);
   const contentRef = useRef(null);
-  const imagesRef = useRef([]); // مصفوفة لتخزين مراجع الصور
+  const imagesRef = useRef([]);
 
   useEffect(() => {
     const sectionEl = sectionRef.current;
     const contentEl = contentRef.current;
     const imageEls = imagesRef.current;
 
-    // --- 2. تحسين الأنيميشن: حركة دخول أكثر سلاسة وتأثيراً ---
+    // نفس الأنيميشن الأصلي الذي أعجبك
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out', duration: 1.5 }
     });
 
-    tl.from(sectionEl, { autoAlpha: 0 }) // ظهور القسم بالكامل
-      .from(contentEl.children, { // ظهور محتوى النص بشكل متتابع
+    tl.from(sectionEl, { autoAlpha: 0 })
+      .from(contentEl.children, {
         autoAlpha: 0,
         y: 50,
         stagger: 0.2,
       }, "-=0.5")
-      .from(imageEls, { // ظهور الكواكب بحركة جذابة
+      .from(imageEls, {
         autoAlpha: 0,
         scale: 0.5,
         filter: 'blur(20px)',
         stagger: 0.2,
       }, "-=1");
 
-    // --- 3. تحسين حركة الـ Parallax لجعلها طبيعية أكثر ---
+    // نفس حركة الـ Parallax الأصلية
     const onMouseMove = (e) => {
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
       
-      // حساب الحركة بنسبة مئوية من -0.5 إلى 0.5
       const moveX = (clientX / offsetWidth - 0.5);
       const moveY = (clientY / offsetHeight - 0.5);
 
-      // تحريك العناصر بسرعات مختلفة لإعطاء إحساس بالعمق
       gsap.to(imageEls[0], { x: -moveX * 50, y: -moveY * 30, rotate: -moveX * 5, duration: 1.2, ease: 'power2.out' });
       gsap.to(imageEls[1], { x: moveX * 30, y: moveY * 20, rotate: moveX * 3, duration: 1.2, ease: 'power2.out' });
       gsap.to(imageEls[2], { x: -moveX * 20, y: -moveY * 40, rotate: -moveX * 2, duration: 1.2, ease: 'power2.out' });
@@ -62,51 +59,48 @@ function HeroSection({ scrollToSection } ) {
     <section 
       ref={sectionRef} 
       id="home" 
-      // --- 4. تحسين الخلفية: استخدام تدرج لوني بدلاً من الأسود الصريح ---
-      className="relative h-screen flex items-center justify-center bg-gradient-to-b from-[#000000] to-[#12050a] text-white overflow-hidden"
+      // --- 1. تم تغيير الخلفية إلى الأبيض ---
+      // تم تغيير لون النص الأساسي إلى الأسود (text-gray-800)
+      className="relative h-screen flex items-center justify-center bg-white text-gray-800 overflow-hidden"
     >
-      {/* خلفية نجوم متحركة لإضافة عمق */}
-      <div className="stars-background absolute inset-0 opacity-50"></div>
-      
-      {/* --- 5. فصل الصور عن المحتوى بشكل كامل لحل مشكلة التداخل --- */}
-      {/* حاوية الصور (الكواكب) */}
+      {/* حاوية الصور الطائرة */}
       <div className="absolute inset-0 w-full h-full z-0">
         <img 
           ref={el => imagesRef.current[0] = el}
           src={image1} 
-          alt="كوكب الشاورما" 
-          className="absolute top-[50%] left-[15%] w-[35vw] max-w-[400px] drop-shadow-2xl"
+          alt="شاورما طائرة" 
+          // تم تعديل الظل ليكون أنعم ومناسب للخلفية البيضاء
+          className="absolute top-[50%] left-[15%] w-[35vw] max-w-[400px] drop-shadow-lg"
         />
         <img 
           ref={el => imagesRef.current[1] = el}
           src={image2} 
-          alt="قمر البطاطس" 
-          className="absolute top-[15%] right-[20%] w-[18vw] max-w-[180px] drop-shadow-xl"
+          alt="بطاطس طائرة" 
+          className="absolute top-[15%] right-[20%] w-[18vw] max-w-[180px] drop-shadow-md"
         />
         <img 
           ref={el => imagesRef.current[2] = el}
           src={image3} 
-          alt="قمر الخضروات" 
-          className="absolute bottom-[10%] right-[45%] w-[22vw] max-w-[220px] drop-shadow-lg"
+          alt="خضروات طائرة" 
+          className="absolute bottom-[10%] right-[45%] w-[22vw] max-w-[250px] drop-shadow-sm"
         />
       </div>
 
-      {/* حاوية المحتوى (النص والأزرار) */}
+      {/* حاوية المحتوى */}
       <div ref={contentRef} className="relative z-10 text-center p-8">
-        {/* --- 6. تحسين وضوح النص: إضافة ظل واضح وتباين أعلى --- */}
+        {/* --- 2. تم تغيير ألوان النصوص لتكون واضحة --- */}
         <h1 
-          className="text-5xl md:text-7xl font-black mb-4 uppercase tracking-wider"
-          style={{ textShadow: '0 4px 15px rgba(0,0,0,0.7)' }}
+          className="text-5xl md:text-7xl font-black mb-4 uppercase tracking-wider text-gray-900"
         >
           مجرّة الشاورما
         </h1>
         <p 
-          className="text-lg md:text-xl mb-8 max-w-xl mx-auto text-gray-200"
-          style={{ textShadow: '0 2px 10px rgba(0,0,0,0.7)' }}
+          className="text-lg md:text-xl mb-8 max-w-xl mx-auto text-gray-600"
         >
           انطلق في رحلة نكهات كونية لا مثيل لها، حيث كل قضمة تأخذك إلى عالم آخر.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {/* --- 3. تم تعديل ألوان الأزرار لتناسب الخلفية البيضاء --- */}
           <Button 
             onClick={() => scrollToSection('menu')}
             size="lg"
@@ -119,7 +113,8 @@ function HeroSection({ scrollToSection } ) {
             onClick={() => scrollToSection('contact')}
             size="lg"
             variant="outline"
-            className="border-white/80 hover:bg-white/10 text-white font-bold text-lg shadow-md transform hover:scale-105 transition-transform duration-300"
+            // تم تغيير لون الحدود والنص ليكون واضحاً
+            className="border-gray-800 hover:bg-gray-100 text-gray-800 font-bold text-lg shadow-md transform hover:scale-105 transition-transform duration-300"
           >
             تواصل معنا
           </Button>
