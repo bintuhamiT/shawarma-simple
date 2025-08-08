@@ -1,5 +1,6 @@
-// AboutSection.jsx (النسخة المبدعة)
-import { ChefHat, Leaf, Award, Users } from 'lucide-react'; // أيقونات محدثة وأكثر تعبيراً
+// AboutSection.jsx (النسخة المطورة مع حركة Parallax)
+
+import { ChefHat, Award, Users } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -8,56 +9,63 @@ gsap.registerPlugin(ScrollTrigger);
 
 function AboutSection({ images }) {
   const sectionRef = useRef(null);
+  const imagesContainerRef = useRef(null); // Ref لحاوية الصور
 
   useEffect(() => {
     const ctx = gsap.context(() => {
       const commonScrollTrigger = {
         trigger: sectionRef.current,
-        start: "top 75%", // تبدأ الأنيميشن عندما يكون القسم في منتصف الشاشة
+        start: "top 75%",
         toggleActions: "play none none none",
       };
 
-      // 1. أنيميشن ظهور المحتوى النصي بشكل متتابع وأنيق
+      // --- أنيميشن الدخول (تبقى كما هي) ---
       gsap.from(".about-content > *", {
         ...commonScrollTrigger,
-        autoAlpha: 0,
-        y: 50,
-        stagger: 0.15,
-        duration: 1,
-        ease: 'power3.out',
+        autoAlpha: 0, y: 50, stagger: 0.15, duration: 1, ease: 'power3.out',
       });
-
-      // 2. أنيميشن ظهور الصور بحركة "كشف" فنية من المركز
       gsap.from(".about-image", {
         ...commonScrollTrigger,
-        autoAlpha: 0,
-        scale: 0.5,
-        stagger: 0.2,
-        duration: 1.2,
-        ease: 'expo.out',
+        autoAlpha: 0, scale: 0.5, stagger: 0.2, duration: 1.2, ease: 'expo.out',
       });
-
-      // 3. أنيميشن عداد الأرقام التفاعلي لزيادة التأثير
       gsap.utils.toArray(".stat-number").forEach(el => {
-        const endValue = parseInt(el.textContent.replace('+', '').replace('K', '000'));
+        const endValue = parseInt(el.dataset.original.replace('+', '').replace('K', '000'));
         gsap.from(el, {
-          textContent: 0,
-          duration: 2.5,
-          ease: "power2.inOut",
-          snap: { textContent: 1 },
+          textContent: 0, duration: 2.5, ease: "power2.inOut", snap: { textContent: 1 },
           scrollTrigger: { trigger: el, start: "top 90%" },
-          // إعادة كتابة النص الكامل بعد انتهاء العداد لضمان عرض الرموز
           onComplete: () => {
-            if (el.dataset.original.includes('K')) {
-              el.textContent = `${endValue / 1000}K+`;
-            } else if (el.dataset.original.includes('+')) {
-              el.textContent = `${endValue}+`;
-            } else {
-              el.textContent = endValue;
-            }
+            if (el.dataset.original.includes('K')) el.textContent = `${endValue / 1000}K+`;
+            else if (el.dataset.original.includes('+')) el.textContent = `${endValue}+`;
+            else el.textContent = endValue;
           }
         });
       });
+
+      // --- ✨ 1. إضافة حركة Parallax للصور مع حركة الماوس ---
+      const imagesContainer = imagesContainerRef.current;
+      const imageElements = gsap.utils.toArray(".about-image");
+
+      const onMouseMove = (e) => {
+        if (window.matchMedia('(pointer: coarse)').matches) return;
+
+        const { clientX, clientY } = e;
+        const { offsetWidth, offsetHeight } = imagesContainer;
+        
+        const moveX = (clientX / offsetWidth - 0.5);
+        const moveY = (clientY / offsetHeight - 0.5);
+
+        // تحريك كل صورة بشكل مختلف قليلاً
+        gsap.to(imageElements[0], { x: -moveX * 40, y: -moveY * 20, duration: 1.5, ease: 'power2.out' }); // الصورة العلوية اليسرى
+        gsap.to(imageElements[1], { x: moveX * 40, y: moveY * 20, duration: 1.5, ease: 'power2.out' }); // الصورة السفلية اليمنى
+        gsap.to(imageElements[2], { x: -moveX * 20, y: -moveY * 10, duration: 1.5, ease: 'power2.out' }); // أيقونة الشيف في المنتصف
+      };
+
+      // نربط الـ event listener بحاوية الصور نفسها
+      imagesContainer.addEventListener('mousemove', onMouseMove);
+      
+      // تنظيف الـ event listener
+      return () => imagesContainer.removeEventListener('mousemove', onMouseMove);
+
     }, sectionRef);
     return () => ctx.revert();
   }, []);
@@ -67,7 +75,7 @@ function AboutSection({ images }) {
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-x-16 gap-y-12 items-center">
           
-          {/* المحتوى النصي أولاً لجذب الانتباه للقصة */}
+          {/* المحتوى النصي */}
           <div className="about-content">
             <h2 className="text-4xl lg:text-5xl font-black mb-6 text-gray-900">
               حكاية بدأت بشغف... وتستمر بكم
@@ -88,10 +96,11 @@ function AboutSection({ images }) {
             </div>
           </div>
 
-          {/* شبكة الصور الفنية على اليمين */}
-          <div className="relative h-[450px] lg:h-[550px]">
-            <img src={images.aboutImage1} alt="داخل المطعم" className="about-image absolute top-0 left-0 w-[70%] h-[60%] object-cover rounded-2xl shadow-2xl transform -rotate-3 hover:rotate-0 hover:scale-105 transition-transform duration-300"/>
-            <img src={images.aboutImage2} alt="تحضير الشاورما" className="about-image absolute bottom-0 right-0 w-[60%] h-[55%] object-cover rounded-2xl shadow-2xl transform rotate-2 hover:rotate-0 hover:scale-105 transition-transform duration-300"/>
+          {/* ✨ 2. إضافة ref إلى حاوية الصور */}
+          <div ref={imagesContainerRef} className="relative h-[450px] lg:h-[550px]">
+            {/* تم حذف تأثير hover من هنا ليعتمد على حركة الماوس فقط */}
+            <img src={images.aboutImage1} alt="داخل المطعم" className="about-image absolute top-0 left-0 w-[70%] h-[60%] object-cover rounded-2xl shadow-2xl transform -rotate-3"/>
+            <img src={images.aboutImage2} alt="تحضير الشاورما" className="about-image absolute bottom-0 right-0 w-[60%] h-[55%] object-cover rounded-2xl shadow-2xl transform rotate-2"/>
             <div className="about-image absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 bg-red-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
               <ChefHat className="w-14 h-14 text-white"/>
             </div>
