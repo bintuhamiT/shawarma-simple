@@ -1,81 +1,100 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+// ContactSection.jsx (النسخة المبدعة)
+
+import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
 import { Button } from './ui/button';
-import { Card } from './ui/card';
-import { Alert, AlertTitle, AlertDescription } from './ui/alert';
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogAction,
-  AlertDialogCancel,
-} from './ui/alert-dialog';
+import { Input } from './ui/input';
+import { Textarea } from './ui/textarea';
+import { useToast } from '../hooks/use-toast'; // تأكد من صحة هذا المسار لمشروع Vite
+import { useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 function ContactSection() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isAlertVisible, setIsAlertVisible] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+  const { toast } = useToast();
+  const sectionRef = useRef(null);
 
   useEffect(() => {
-    if (isAlertVisible) {
-      const timer = setTimeout(() => setIsAlertVisible(false), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [isAlertVisible]);
+    const ctx = gsap.context(() => {
+      const commonScrollTrigger = {
+        trigger: sectionRef.current,
+        start: "top 75%",
+        toggleActions: "play none none none",
+      };
 
-  const handleFormChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+      gsap.from(".contact-header", { ...commonScrollTrigger, autoAlpha: 0, y: 40, duration: 0.8 });
+      gsap.from(".contact-info-item", { ...commonScrollTrigger, autoAlpha: 0, x: -40, stagger: 0.15, duration: 0.6 });
+      gsap.from(".contact-form-card", { ...commonScrollTrigger, autoAlpha: 0, scale: 0.9, duration: 1 });
+
+    }, sectionRef);
+    return () => ctx.revert();
+  }, []);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-    setIsDialogOpen(true);
-  };
-
-  const confirmFormSubmission = () => {
-    console.log('Form submitted:', formData);
-    setIsDialogOpen(false);
-    setIsAlertVisible(true);
-    setFormData({ name: '', email: '', phone: '', message: '' });
+    // هنا يمكنك إضافة منطق إرسال النموذج الفعلي (e.g., using fetch or axios)
+    console.log('Form submitted');
+    
+    toast({
+      title: "🚀 تم الإرسال بنجاح!",
+      description: "شكراً لك! رسالتك في طريقها إلينا وسنرد عليك قريباً.",
+    });
+    e.target.reset(); // إعادة تعيين حقول النموذج بعد الإرسال
   };
 
   return (
-    <section id="contact" className="py-20 bg-gradient-to-r from-red-600 to-orange-500 text-white">
+    <section id="contact" ref={sectionRef} className="py-24 bg-gray-900 text-white overflow-hidden">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">تواصل معنا</h2>
-          <p className="text-lg opacity-90">نحن هنا للإجابة على جميع استفساراتك وتلبية طلباتك</p>
+        <div className="contact-header text-center mb-16">
+          <h2 className="text-4xl lg:text-5xl font-black mb-4">جاهز لتجربة لا تُنسى؟</h2>
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
+            سواء كان لديك سؤال، أو ترغب في حجز طاولة، أو فقط لتقول مرحباً، نحن هنا من أجلك.
+          </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-12">
-          <div className="space-y-8">
-            <div className="flex items-center gap-4"><MapPin className="w-8 h-8" /><div><h3 className="text-xl font-bold mb-2">العنوان</h3><p>شارع الملك فهد، حي النزهة  
-الرياض، المملكة العربية السعودية</p></div></div>
-            <div className="flex items-center gap-4"><Phone className="w-8 h-8" /><div><h3 className="text-xl font-bold mb-2">الهاتف</h3><p>+966 11 123 4567  
-+966 50 123 4567</p></div></div>
-            <div className="flex items-center gap-4"><Mail className="w-8 h-8" /><div><h3 className="text-xl font-bold mb-2">البريد الإلكتروني</h3><p>info@shawarma-asala.com  
-orders@shawarma-asala.com</p></div></div>
-            <div className="flex items-center gap-4"><Clock className="w-8 h-8" /><div><h3 className="text-xl font-bold mb-2">ساعات العمل</h3><p>السبت - الخميس: 11:00 ص - 12:00 م  
-الجمعة: 2:00 م - 12:00 م</p></div></div>
+
+        <div className="grid lg:grid-cols-5 gap-12">
+          {/* معلومات التواصل على اليمين */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="contact-info-item flex items-start gap-5 p-4 rounded-lg transition-colors duration-300 hover:bg-gray-800/60">
+              <MapPin className="w-8 h-8 text-red-500 mt-1 flex-shrink-0"/>
+              <div>
+                <h3 className="text-xl font-bold mb-1">تفضل بزيارتنا</h3>
+                <p className="text-gray-300">شارع الملك فهد، حي النزهة، الرياض</p>
+                <a href="#" className="text-red-500 hover:text-red-400 transition-colors text-sm mt-1 inline-block">عرض على الخريطة</a>
+              </div>
+            </div>
+            <div className="contact-info-item flex items-start gap-5 p-4 rounded-lg transition-colors duration-300 hover:bg-gray-800/60">
+              <Phone className="w-8 h-8 text-red-500 mt-1 flex-shrink-0"/>
+              <div>
+                <h3 className="text-xl font-bold mb-1">اتصل بنا مباشرة</h3>
+                <p className="text-gray-300" dir="ltr">+966 11 123 4567</p>
+              </div>
+            </div>
+            <div className="contact-info-item flex items-start gap-5 p-4 rounded-lg transition-colors duration-300 hover:bg-gray-800/60">
+              <Clock className="w-8 h-8 text-red-500 mt-1 flex-shrink-0"/>
+              <div>
+                <h3 className="text-xl font-bold mb-1">ساعات العمل</h3>
+                <p className="text-gray-300">يومياً: 11:00 صباحاً - 1:00 صباحاً</p>
+              </div>
+            </div>
           </div>
-          <Card className="p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">أرسل لنا رسالة</h3>
-            {isAlertVisible && (<Alert className="mb-4 bg-secondary-beige text-primary-red"><AlertTitle>تم إرسال الرسالة!</AlertTitle><AlertDescription>شكراً لتواصلك معنا. سنرد عليك قريباً.</AlertDescription></Alert>)}
-            <form className="space-y-4" onSubmit={handleFormSubmit}>
-              <input type="text" name="name" value={formData.name} onChange={handleFormChange} placeholder="الاسم الكامل" className="w-full p-3 border rounded-lg text-gray-800" required />
-              <input type="email" name="email" value={formData.email} onChange={handleFormChange} placeholder="البريد الإلكتروني" className="w-full p-3 border rounded-lg text-gray-800" required />
-              <input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} placeholder="رقم الهاتف" className="w-full p-3 border rounded-lg text-gray-800" />
-              <textarea name="message" value={formData.message} onChange={handleFormChange} placeholder="رسالتك..." rows={4} className="w-full p-3 border rounded-lg text-gray-800" required></textarea>
-              <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <AlertDialogTrigger asChild><Button type="submit" className="w-full btn-primary">إرسال الرسالة</Button></AlertDialogTrigger>
-                <AlertDialogContent className="bg-white"><AlertDialogHeader><AlertDialogTitle className="text-gradient text-xl">تأكيد إرسال الرسالة</AlertDialogTitle><AlertDialogDescription className="text-gray-600">هل أنت متأكد من إرسال هذه الرسالة؟ سنتواصل معك قريباً بناءً على المعلومات المقدمة.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel className="border-primary-red text-primary-red hover:bg-gray-100">إلغاء</AlertDialogCancel><AlertDialogAction onClick={confirmFormSubmission} className="btn-primary">تأكيد</AlertDialogAction></AlertDialogFooter></AlertDialogContent>
-              </AlertDialog>
+
+          {/* نموذج التواصل على اليسار */}
+          <div className="contact-form-card lg:col-span-3 bg-gray-800/50 p-8 rounded-2xl shadow-2xl border border-gray-700/50">
+            <h3 className="text-2xl font-bold mb-6">أرسل لنا رسالة</h3>
+            <form className="space-y-5" onSubmit={handleFormSubmit}>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <Input type="text" name="name" placeholder="الاسم الكامل" required className="bg-gray-700/80 border-gray-600 text-white h-12 rounded-lg focus:border-red-500 focus:ring-red-500"/>
+                <Input type="email" name="email" placeholder="البريد الإلكتروني" required className="bg-gray-700/80 border-gray-600 text-white h-12 rounded-lg focus:border-red-500 focus:ring-red-500"/>
+              </div>
+              <Textarea name="message" placeholder="كيف يمكننا مساعدتك؟" required className="bg-gray-700/80 border-gray-600 text-white rounded-lg focus:border-red-500 focus:ring-red-500" rows={5}/>
+              <Button type="submit" size="lg" className="w-full bg-red-600 hover:bg-red-700 text-lg h-14 rounded-lg font-bold flex items-center gap-2 transition-all duration-300 transform hover:scale-105">
+                <Send className="w-5 h-5"/>
+                إرسال الرسالة
+              </Button>
             </form>
-          </Card>
+          </div>
         </div>
       </div>
     </section>
