@@ -6,9 +6,9 @@ import { gsap } from 'gsap';
 import { Rocket, Phone } from 'lucide-react'; // أيقونات محدثة
 
 // --- استخدم صور بدون خلفية (PNG) ---
-import image1 from '../assets/561NAXOamYdP.jpg';
-import image2 from '../assets/QkRrgSs54Md7.jpg';
-import image3 from '../assets/SINTLs9LRXo4.jpg';
+import image1 from '../assets/new.jpg';
+import image2 from '../assets/neww.jpg';
+import image3 from '../assets/newww.jpg';
 
 function HeroSection({ scrollToSection } ) {
   const sectionRef = useRef(null);
