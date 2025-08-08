@@ -1,16 +1,15 @@
-// HeroSection.jsx
-
 import { useEffect, useRef } from 'react';
-import { Button } from './ui/button';
+import { Button } from './ui/button'; // تأكد من صحة مسار هذا المكون
 import { gsap } from 'gsap';
-import { Rocket, Phone } from 'lucide-react'; // أيقونات محدثة
+import { Rocket, Phone } from 'lucide-react';
 
-// --- استخدم صور بدون خلفية (PNG) ---
+// --- 1. استيراد 4 صور بدون خلفية (PNG) ---
 import image1 from '../assets/new-removebg-preview.png';
 import image2 from '../assets/neww-removebg-preview.png';
 import image3 from '../assets/newww-removebg-preview.png';
+import image4 from '../assets/newwww-removebg-preview.png'; // هذه صورة افتراضية، استبدلها بصورتك الرابعة
 
-function HeroSection({ scrollToSection } ) {
+function HeroSection({ scrollToSection }) {
   const sectionRef = useRef(null);
   const contentRef = useRef(null);
   const imagesRef = useRef([]);
@@ -20,9 +19,9 @@ function HeroSection({ scrollToSection } ) {
     const contentEl = contentRef.current;
     const imageEls = imagesRef.current;
 
-    // --- 1. أنيميشن دخول أكثر إتقاناً ---
+    // --- أنيميشن دخول متقن لأربعة عناصر ---
     const tl = gsap.timeline({
-      defaults: { ease: 'power3.out', duration: 1.8 } // زيادة طفيفة في المدة لنعومة أكبر
+      defaults: { ease: 'power3.out', duration: 1.8 }
     });
 
     tl.from(contentEl.children, {
@@ -34,25 +33,31 @@ function HeroSection({ scrollToSection } ) {
         autoAlpha: 0,
         scale: 0.3,
         y: (i) => (i % 2 === 0 ? 80 : -80), // حركة من الأعلى والأسفل
-        rotation: (i) => (i % 2 === 0 ? -30 : 30),
+        rotation: (i) => (i % 2 === 0 ? -30 : 30), // دوران مختلف
         stagger: 0.2,
       }, "-=0.5");
 
-    // --- 2. حركة Parallax أكثر نعومة وتنوعاً (لمسة الإتقان) ---
+    // --- حركة Parallax لأربعة عناصر مع إحساس بالعمق ---
     const onMouseMove = (e) => {
+      // تجنب تشغيل الأنيميشن على الأجهزة التي لا تدعم hover (مثل الموبايل)
+      if (window.matchMedia('(pointer: coarse)').matches) return;
+
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
       
       const moveX = (clientX / offsetWidth - 0.5);
       const moveY = (clientY / offsetHeight - 0.5);
 
-      // كل عنصر يتحرك ويتفاعل بشكل مختلف قليلاً لإعطاء إحساس بالعمق والواقعية
-      gsap.to(imageEls[0], { x: -moveX * 80, y: -moveY * 50, rotation: -moveX * 4, duration: 2, ease: 'power2.out' });
-      gsap.to(imageEls[1], { x: moveX * 50, y: moveY * 70, rotation: moveX * 3, duration: 2.5, ease: 'power2.out' });
-      gsap.to(imageEls[2], { x: -moveX * 30, y: -moveY * 90, rotation: -moveX * 2, duration: 3, ease: 'power2.out' });
+      // كل صورة تتحرك بسرعة ومدة مختلفة لعمق أكبر
+      gsap.to(imageEls[0], { x: -moveX * 80, y: -moveY * 50, rotation: -moveX * 4, duration: 2.0, ease: 'power2.out' }); // رئيسي وسريع
+      gsap.to(imageEls[1], { x: moveX * 50, y: moveY * 70, rotation: moveX * 3, duration: 2.5, ease: 'power2.out' }); // أبطأ قليلاً
+      gsap.to(imageEls[2], { x: -moveX * 30, y: -moveY * 90, rotation: -moveX * 2, duration: 3.0, ease: 'power2.out' }); // أبطأ
+      gsap.to(imageEls[3], { x: moveX * 60, y: -moveY * 60, rotation: moveX * 5, duration: 2.2, ease: 'power2.out' }); // سرعة متوسطة
     };
 
     sectionEl.addEventListener('mousemove', onMouseMove);
+    
+    // تنظيف الـ event listener عند إزالة المكون
     return () => sectionEl.removeEventListener('mousemove', onMouseMove);
   }, []);
 
@@ -64,27 +69,35 @@ function HeroSection({ scrollToSection } ) {
     >
       {/* حاوية الصور الطائرة */}
       <div className="absolute inset-0 w-full h-full z-0">
-        {/* --- 3. توزيع متباعد ومدروس للصور --- */}
+        {/* --- توزيع رباعي متباعد ومدروس للصور --- */}
         <img 
           ref={el => imagesRef.current[0] = el}
           src={image1} 
-          alt="شاورما طائرة" 
-          // تم دفعه لليسار أكثر وتكبيره قليلاً ليكون العنصر الرئيسي
-          className="absolute top-[40%] left-[-5%] md:left-[5%] w-[45vw] md:w-[35vw] max-w-[450px] drop-shadow-2xl"
+          alt="شاورما طائرة 1" 
+          // الزاوية السفلية اليسرى، كبيرة وبارزة
+          className="absolute bottom-[5%] left-[-10%] md:left-[-5%] w-[45vw] md:w-[35vw] max-w-[420px] drop-shadow-2xl"
         />
         <img 
           ref={el => imagesRef.current[1] = el}
           src={image2} 
-          alt="بطاطس طائرة" 
-          // تم دفعه للأعلى واليمين
-          className="absolute top-[5%] right-[-5%] md:right-[8%] w-[25vw] md:w-[18vw] max-w-[200px] drop-shadow-xl"
+          alt="شاورما طائرة 2" 
+          // الزاوية العلوية اليمنى، أصغر حجماً
+          className="absolute top-[5%] right-[-8%] md:right-[-2%] w-[30vw] md:w-[20vw] max-w-[220px] drop-shadow-xl"
         />
         <img 
           ref={el => imagesRef.current[2] = el}
           src={image3} 
-          alt="خضروات طائرة" 
-          // تم دفعه للأسفل والوسط لتحقيق التوازن
-          className="absolute bottom-[-5%] right-[30%] md:right-[40%] w-[30vw] md:w-[22vw] max-w-[250px] drop-shadow-lg"
+          alt="شاورما طائرة 3" 
+          // الزاوية العلوية اليسرى، حجم متوسط
+          className="absolute top-[10%] left-[5%] md:left-[15%] w-[28vw] md:w-[18vw] max-w-[200px] drop-shadow-lg"
+        />
+        {/* الصورة الرابعة المضافة */}
+        <img 
+          ref={el => imagesRef.current[3] = el}
+          src={image4} 
+          alt="شاورما طائرة 4" 
+          // الزاوية السفلية اليمنى، لتحقيق التوازن
+          className="absolute bottom-[15%] right-[5%] md:right-[10%] w-[32vw] md:w-[22vw] max-w-[250px] drop-shadow-xl"
         />
       </div>
 
@@ -101,7 +114,6 @@ function HeroSection({ scrollToSection } ) {
           مزيج متقن من المكونات الطازجة والنكهات الأصيلة في كل لفة.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {/* --- 4. تحسينات دقيقة على الأزرار --- */}
           <Button 
             onClick={() => scrollToSection('menu')}
             size="lg"
