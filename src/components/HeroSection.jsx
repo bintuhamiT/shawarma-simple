@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { gsap } from 'gsap';
-import { Rocket } from 'lucide-react';
+import { Rocket, Phone } from 'lucide-react'; // أيقونات محدثة
 
-// --- استخدم صور بدون خلفية (PNG) لتظهر "طائرة" ---
+// --- استخدم صور بدون خلفية (PNG) ---
 import image1 from '../assets/561NAXOamYdP.jpg';
 import image2 from '../assets/QkRrgSs54Md7.jpg';
 import image3 from '../assets/SINTLs9LRXo4.jpg';
@@ -20,25 +20,25 @@ function HeroSection({ scrollToSection } ) {
     const contentEl = contentRef.current;
     const imageEls = imagesRef.current;
 
-    // نفس الأنيميشن الأصلي الذي أعجبك
+    // --- 1. أنيميشن دخول أكثر إتقاناً ---
     const tl = gsap.timeline({
-      defaults: { ease: 'power3.out', duration: 1.5 }
+      defaults: { ease: 'power3.out', duration: 1.8 } // زيادة طفيفة في المدة لنعومة أكبر
     });
 
-    tl.from(sectionEl, { autoAlpha: 0 })
-      .from(contentEl.children, {
+    tl.from(contentEl.children, {
         autoAlpha: 0,
         y: 50,
-        stagger: 0.2,
-      }, "-=0.5")
+        stagger: 0.15,
+      })
       .from(imageEls, {
         autoAlpha: 0,
-        scale: 0.5,
-        filter: 'blur(20px)',
+        scale: 0.3,
+        y: (i) => (i % 2 === 0 ? 80 : -80), // حركة من الأعلى والأسفل
+        rotation: (i) => (i % 2 === 0 ? -30 : 30),
         stagger: 0.2,
-      }, "-=1");
+      }, "-=0.5");
 
-    // نفس حركة الـ Parallax الأصلية
+    // --- 2. حركة Parallax أكثر نعومة وتنوعاً (لمسة الإتقان) ---
     const onMouseMove = (e) => {
       const { clientX, clientY } = e;
       const { offsetWidth, offsetHeight } = sectionEl;
@@ -46,9 +46,10 @@ function HeroSection({ scrollToSection } ) {
       const moveX = (clientX / offsetWidth - 0.5);
       const moveY = (clientY / offsetHeight - 0.5);
 
-      gsap.to(imageEls[0], { x: -moveX * 50, y: -moveY * 30, rotate: -moveX * 5, duration: 1.2, ease: 'power2.out' });
-      gsap.to(imageEls[1], { x: moveX * 30, y: moveY * 20, rotate: moveX * 3, duration: 1.2, ease: 'power2.out' });
-      gsap.to(imageEls[2], { x: -moveX * 20, y: -moveY * 40, rotate: -moveX * 2, duration: 1.2, ease: 'power2.out' });
+      // كل عنصر يتحرك ويتفاعل بشكل مختلف قليلاً لإعطاء إحساس بالعمق والواقعية
+      gsap.to(imageEls[0], { x: -moveX * 80, y: -moveY * 50, rotation: -moveX * 4, duration: 2, ease: 'power2.out' });
+      gsap.to(imageEls[1], { x: moveX * 50, y: moveY * 70, rotation: moveX * 3, duration: 2.5, ease: 'power2.out' });
+      gsap.to(imageEls[2], { x: -moveX * 30, y: -moveY * 90, rotation: -moveX * 2, duration: 3, ease: 'power2.out' });
     };
 
     sectionEl.addEventListener('mousemove', onMouseMove);
@@ -59,63 +60,63 @@ function HeroSection({ scrollToSection } ) {
     <section 
       ref={sectionRef} 
       id="home" 
-      // --- 1. تم تغيير الخلفية إلى الأبيض ---
-      // تم تغيير لون النص الأساسي إلى الأسود (text-gray-800)
-      className="relative h-screen flex items-center justify-center bg-white text-gray-800 overflow-hidden"
+      className="relative h-screen flex items-center justify-center bg-gray-50 text-gray-800 overflow-hidden"
     >
       {/* حاوية الصور الطائرة */}
       <div className="absolute inset-0 w-full h-full z-0">
+        {/* --- 3. توزيع متباعد ومدروس للصور --- */}
         <img 
           ref={el => imagesRef.current[0] = el}
           src={image1} 
           alt="شاورما طائرة" 
-          // تم تعديل الظل ليكون أنعم ومناسب للخلفية البيضاء
-          className="absolute top-[50%] left-[15%] w-[35vw] max-w-[400px] drop-shadow-lg"
+          // تم دفعه لليسار أكثر وتكبيره قليلاً ليكون العنصر الرئيسي
+          className="absolute top-[40%] left-[-5%] md:left-[5%] w-[45vw] md:w-[35vw] max-w-[450px] drop-shadow-2xl"
         />
         <img 
           ref={el => imagesRef.current[1] = el}
           src={image2} 
           alt="بطاطس طائرة" 
-          className="absolute top-[15%] right-[20%] w-[18vw] max-w-[180px] drop-shadow-md"
+          // تم دفعه للأعلى واليمين
+          className="absolute top-[5%] right-[-5%] md:right-[8%] w-[25vw] md:w-[18vw] max-w-[200px] drop-shadow-xl"
         />
         <img 
           ref={el => imagesRef.current[2] = el}
           src={image3} 
           alt="خضروات طائرة" 
-          className="absolute bottom-[10%] right-[45%] w-[22vw] max-w-[250px] drop-shadow-sm"
+          // تم دفعه للأسفل والوسط لتحقيق التوازن
+          className="absolute bottom-[-5%] right-[30%] md:right-[40%] w-[30vw] md:w-[22vw] max-w-[250px] drop-shadow-lg"
         />
       </div>
 
       {/* حاوية المحتوى */}
       <div ref={contentRef} className="relative z-10 text-center p-8">
-        {/* --- 2. تم تغيير ألوان النصوص لتكون واضحة --- */}
         <h1 
           className="text-5xl md:text-7xl font-black mb-4 uppercase tracking-wider text-gray-900"
         >
-          مجرّة الشاورما
+          فن الشاورما
         </h1>
         <p 
           className="text-lg md:text-xl mb-8 max-w-xl mx-auto text-gray-600"
         >
-          انطلق في رحلة نكهات كونية لا مثيل لها، حيث كل قضمة تأخذك إلى عالم آخر.
+          مزيج متقن من المكونات الطازجة والنكهات الأصيلة في كل لفة.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          {/* --- 3. تم تعديل ألوان الأزرار لتناسب الخلفية البيضاء --- */}
+          {/* --- 4. تحسينات دقيقة على الأزرار --- */}
           <Button 
             onClick={() => scrollToSection('menu')}
             size="lg"
-            className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-lg transform hover:scale-105 transition-transform duration-300"
+            className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg shadow-xl shadow-red-500/20 transform hover:scale-105 transition-all duration-300 ease-in-out"
           >
             <Rocket className="ml-2 h-5 w-5" />
-            استكشف القائمة
+            اكتشف القائمة
           </Button>
           <Button 
             onClick={() => scrollToSection('contact')}
             size="lg"
             variant="outline"
-            // تم تغيير لون الحدود والنص ليكون واضحاً
-            className="border-gray-800 hover:bg-gray-100 text-gray-800 font-bold text-lg shadow-md transform hover:scale-105 transition-transform duration-300"
+            className="border-gray-400 hover:bg-gray-200/70 text-gray-800 font-bold text-lg shadow-lg shadow-gray-500/10 transform hover:scale-105 transition-all duration-300 ease-in-out"
           >
+            <Phone className="ml-2 h-5 w-5" />
             تواصل معنا
           </Button>
         </div>
