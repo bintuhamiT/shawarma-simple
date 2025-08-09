@@ -1,85 +1,102 @@
-// FaqSection.jsx (النسخة المصححة التي تحترم دور React)
-
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
-// لا حاجة لـ Flip هنا، سنستخدم GSAP الأساسي
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/accordion'; // افتراضي: استيراد من مكتبة الواجهة
+import { Button } from './ui/button'; // افتراضي: استيراد من مكتبة الواجهة
+import { Phone, MessageCircleQuestion, ChevronDown } from 'lucide-react';
 
-// ✨ تأكد من تسجيل الإضافات مرة واحدة فقط في مكان مركزي في تطبيقك
-// أفضل مكان هو ملف الدخول الرئيسي مثل App.jsx أو main.jsx
-// هذا يضمن أنها مسجلة قبل تنفيذ أي مكون.
-// gsap.registerPlugin(ScrollTrigger); // <--- انقله إلى App.jsx أو main.jsx
+// تسجيل إضافة GSAP مرة واحدة
+gsap.registerPlugin(ScrollTrigger);
 
-function FaqSection({ faqs }) {
+function FaqSection({ faqs, scrollToSection }) {
   const sectionRef = useRef(null);
-  const questionsListRef = useRef(null);
-  const answerContentRef = useRef(null);
-  const indicatorRef = useRef(null); // Ref مخصص للمؤشر
+  // حالة لتتبع العنصر المفتوح حاليًا في الأكورديون
+  const [activeItem, setActiveItem] = useState(null);
 
-  // تأكد من أن faqs مصفوفة قبل استخدامها
-  const validFaqs = Array.isArray(faqs) ? faqs : [];
-  const [activeFaq, setActiveFaq] = useState(validFaqs.length > 0 ? validFaqs[0] : null);
-
-  // أنيميشن الدخول الأولي
+  // التأثير الخاص بأنيميشن الدخول عند التمرير (يعمل مرة واحدة)
   useEffect(() => {
-    // ✨ تسجيل الإضافة داخل useEffect كحل بديل إذا لم تسجلها مركزياً
-    // هذا يضمن أن الإضافة مسجلة قبل تشغيل الأنيميشن
-    gsap.registerPlugin(ScrollTrigger);
-
+    // استخدام gsap.context لضمان تنظيف الأنيميشن بشكل آمن
     const ctx = gsap.context(() => {
+      const commonScrollTrigger = {
+        trigger: sectionRef.current,
+        start: "top 80%", // يبدأ الأنيميشن عندما يصل أعلى القسم إلى 80% من الشاشة
+        toggleActions: "play none none none",
+      };
+
+      // 1. أنيميشن ظهور العنوان الرئيسي
       gsap.from(".faq-header", {
-        scrollTrigger: { trigger: sectionRef.current, start: "top 80%" },
-        autoAlpha: 0, y: 30, duration: 0.8, ease: 'power2.out'
+        ...commonScrollTrigger,
+        autoAlpha: 0,
+        y: 40,
+        duration: 0.8,
+        ease: 'power2.out',
       });
-      gsap.from(".faq-layout-grid > *", {
-        scrollTrigger: { trigger: ".faq-layout-grid", start: "top 85%" },
-        autoAlpha: 0, y: 40, stagger: 0.15, duration: 0.8, ease: 'power3.out'
+
+      // 2. أنيميشن ظهور قائمة الأسئلة مع تأثير متدرج
+      gsap.from(".faq-item", {
+        ...commonScrollTrigger,
+        autoAlpha: 0,
+        x: -50, // تأتي من اليسار
+        stagger: 0.1, // تأخير بين كل عنصر
+        duration: 0.7,
+        ease: 'power3.out',
       });
-    }, sectionRef);
+      
+      // 3. أنيميشن ظهور البطاقة الجانبية
+      gsap.from(".faq-cta-card", {
+        ...commonScrollTrigger,
+        autoAlpha: 0,
+        scale: 0.9,
+        duration: 1,
+        ease: 'expo.out',
+      });
+
+      // 4. أنيميشن Parallax للبطاقة الجانبية (الحركة أثناء التمرير)
+      gsap.to(".faq-cta-card", {
+        yPercent: -15, // تتحرك للأعلى بنسبة 15% من ارتفاعها
+        ease: "none",
+        scrollTrigger: {
+          trigger: ".grid",
+          start: "top center",
+          end: "bottom bottom",
+          scrub: 1.5, // يجعل الحركة ناعمة ومرتبطة بالتمرير
+        }
+      });
+
+    }, sectionRef); // ربط السياق بالعنصر الرئيسي للمكون
+
+    // دالة التنظيف عند إزالة المكون
     return () => ctx.revert();
-  }, []);
+  }, []); // المصفوفة الفارغة تضمن أن هذا التأثير يعمل مرة واحدة فقط
 
-  // ✨ أنيميشن تحريك المؤشر وتغيير المحتوى
+  // التأثير الخاص بأنيميشن فتح وإغلاق عناصر الأكورديون
   useEffect(() => {
-    if (!activeFaq || !questionsListRef.current || !indicatorRef.current) return;
+    // استهداف جميع العناصر للتحكم في حالتها
+    const allItems = gsap.utils.toArray('.faq-item');
+    
+    allItems.forEach(item => {
+      const content = item.querySelector('.accordion-content');
+      const icon = item.querySelector('.accordion-icon');
+      const isActive = item.getAttribute('data-value') === activeItem;
 
-    // العثور على الزر النشط بناءً على ID السؤال النشط
-    const activeQuestionElement = questionsListRef.current.querySelector(`[data-faq-id="${activeFaq.id}"]`);
-    if (!activeQuestionElement) return;
-
-    // استخدام GSAP لتحريك المؤشر بسلاسة إلى موضع الزر النشط
-    // GSAP سيحسب الأبعاد والموقع ويحرك المؤشر إليها
-    gsap.to(indicatorRef.current, {
-      top: activeQuestionElement.offsetTop,
-      height: activeQuestionElement.offsetHeight,
-      duration: 0.5,
-      ease: 'power2.inOut',
-    });
-
-  }, [activeFaq]); // هذا التأثير يعمل كلما تغير السؤال النشط
-
-  const handleQuestionSelect = (faq) => {
-    if (activeFaq && activeFaq.id === faq.id) return;
-
-    const answerContent = answerContentRef.current;
-    gsap.to(answerContent, {
-      autoAlpha: 0,
-      y: -10,
-      duration: 0.2,
-      ease: 'power1.in',
-      onComplete: () => {
-        setActiveFaq(faq);
-        gsap.fromTo(answerContent,
-          { autoAlpha: 0, y: 10 },
-          { autoAlpha: 1, y: 0, duration: 0.3, ease: 'power1.out' }
-        );
+      if (isActive) {
+        // أنيميشن الفتح
+        gsap.to(content, {
+          height: 'auto', autoAlpha: 1,
+          duration: 0.5, ease: 'expo.out', overwrite: 'auto'
+        });
+        gsap.to(icon, { rotate: 180, duration: 0.4, ease: 'power2.out' });
+      } else {
+        // أنيميشن الإغلاق
+        gsap.to(content, {
+          height: 0, autoAlpha: 0,
+          duration: 0.4, ease: 'power2.inOut', overwrite: 'auto'
+        });
+        gsap.to(icon, { rotate: 0, duration: 0.4, ease: 'power2.out' });
       }
     });
-  };
 
-  if (validFaqs.length === 0) {
-    return null;
-  }
+  }, [activeItem]); // إعادة تشغيل الأنيميشن فقط عند تغير العنصر النشط
 
   return (
     <section id="faq" ref={sectionRef} className="py-24 bg-white overflow-hidden">
@@ -89,41 +106,59 @@ function FaqSection({ faqs }) {
             أسئلة تهمك
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            وجدنا أن هذه الأسئلة تتكرر كثيراً، فجمعنا لك إجاباتها هنا.
+            وجدنا أن هذه الأسئلة تتكرر كثيراً، فجمعنا لك إجاباتها هنا لتجربة أسهل وأسرع.
           </p>
         </div>
 
-        <div className="faq-layout-grid grid lg:grid-cols-2 gap-x-12 gap-y-8">
-          {/* الجهة اليمنى: قائمة الأسئلة */}
-          <div ref={questionsListRef} className="relative space-y-3">
-            {/* ✨ المؤشر الآن عنصر مستقل ويتم تحريكه فقط، لا يتم نقله */}
-            <div ref={indicatorRef} className="active-indicator absolute left-0 w-full bg-red-50 border-2 border-red-500 rounded-lg -z-10"></div>
-            
-            {validFaqs.map(faq => (
-              <button
-                key={faq.id}
-                data-faq-id={faq.id} // استخدام data attribute لتحديد الزر
-                onClick={() => handleQuestionSelect(faq)}
-                className={`relative w-full text-right p-5 rounded-lg transition-colors duration-300 font-semibold text-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
-                  ${activeFaq?.id === faq.id ? 'text-red-600' : 'text-gray-700 hover:text-red-600 bg-gray-50 hover:bg-red-50'}`}
-              >
-                {faq.question}
-              </button>
-            ))}
+        <div className="grid lg:grid-cols-3 gap-x-12 gap-y-8 items-start">
+          {/* العمود الأيسر: قائمة الأسئلة */}
+          <div className="lg:col-span-2">
+            <Accordion 
+              type="single" 
+              collapsible 
+              className="w-full space-y-4"
+              onValueChange={setActiveItem} // تحديث الحالة عند تغيير العنصر المفتوح
+            >
+              {(faqs || []).map((faq) => (
+                <AccordionItem 
+                  key={faq.id} 
+                  value={`item-${faq.id}`}
+                  data-value={`item-${faq.id}`} // لتسهيل الاستهداف في GSAP
+                  className="faq-item bg-gray-50 border border-transparent rounded-xl shadow-sm overflow-hidden data-[state=open]:bg-white data-[state=open]:shadow-md data-[state=open]:border-gray-200 transition-all duration-300"
+                >
+                  <AccordionTrigger className="text-lg font-semibold text-gray-800 hover:no-underline hover:text-red-600 text-right w-full px-6 py-5 group transition-colors duration-300">
+                    <span className="flex-1 text-right">{faq.question}</span>
+                    <ChevronDown className="accordion-icon h-5 w-5 shrink-0 transition-transform duration-300 mr-4" />
+                  </AccordionTrigger>
+                  <AccordionContent className="accordion-content h-0 overflow-hidden opacity-0 invisible">
+                    <div className="px-6 pb-5 pt-2">
+                      <p className="text-gray-700 leading-relaxed text-right">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </div>
 
-          {/* الجهة اليسرى: عرض الإجابة */}
-          <div className="sticky top-24 h-fit min-h-[300px] bg-gray-50 rounded-2xl p-8 lg:p-10 border">
-            {activeFaq && (
-              <div ref={answerContentRef}>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  {activeFaq.question}
-                </h3>
-                <p className="text-gray-600 leading-relaxed">
-                  {activeFaq.answer}
-                </p>
-              </div>
-            )}
+          {/* العمود الأيمن: بطاقة التواصل */}
+          <div className="faq-cta-card hidden lg:block bg-gradient-to-br from-gray-800 to-gray-900 p-8 rounded-2xl shadow-xl text-white text-center sticky top-24">
+            <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-5 border-2 border-white/20">
+                <MessageCircleQuestion className="w-10 h-10 text-white"/>
+            </div>
+            <h3 className="text-2xl font-bold mb-3">هل لديك سؤال آخر؟</h3>
+            <p className="text-gray-300 mb-6">
+              فريقنا جاهز للإجابة على جميع استفساراتك. لا تتردد بالتواصل معنا!
+            </p>
+            <Button 
+              onClick={() => scrollToSection('contact')}
+              size="lg"
+              className="w-full bg-red-600 hover:bg-red-700 text-lg font-bold transition-transform hover:scale-105"
+            >
+              <Phone className="ml-2 w-5 h-5" />
+              تواصل معنا
+            </Button>
           </div>
         </div>
       </div>
