@@ -1,8 +1,10 @@
+// MenuSection.jsx (النسخة المطورة مع حركات متقدمة)
+
 import { useState, useEffect, useRef } from 'react';
 import { Button } from './ui/button';
 import { Card, CardContent } from './ui/card';
 import { Badge } from './ui/badge';
-import { Eye, ShoppingCart } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 
 // --- GSAP and Plugins ---
 import { gsap } from 'gsap';
@@ -18,41 +20,40 @@ const categories = [
   { id: 'mixed', name: 'شاورما مشكلة' }
 ];
 
-// --- The Natural & Comfortable Menu Card Component ---
-function MenuItemCard({ item, onAddToCart }) {
+// --- مكون بطاقة المنتج (مع تحسينات طفيفة) ---
+function MenuItemCard({ item, handleAddToCart }) {
   const cardRef = useRef(null);
   const imageRef = useRef(null);
 
-  // A very subtle and natural hover effect.
+  // تأثير الرفع عند المرور (Hover) - يبقى كما هو لأنه فعال وجميل
   useEffect(() => {
     const card = cardRef.current;
-    if (!card) return;
-
-    // We only animate the 'y' transform and box-shadow for a clean "lift" effect.
-    const hoverTimeline = gsap.timeline({ paused: true, defaults: { duration: 0.3, ease: 'power2.out' } })
-      .to(card, { 
-        y: -6, 
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.05)' 
-      });
+    const hoverTimeline = gsap.timeline({ paused: true, defaults: { duration: 0.4, ease: 'power2.out' } })
+      .to(card, { y: -8, boxShadow: '0 10px 20px -5px rgba(0,0,0,0.1)' })
+      .to(imageRef.current, { scale: 1.05 }, '<'); // تكبير الصورة مع البطاقة
 
     card.addEventListener('mouseenter', () => hoverTimeline.play());
     card.addEventListener('mouseleave', () => hoverTimeline.reverse());
 
     return () => {
-      card.removeEventListener('mouseenter', () => hoverTimeline.play());
-      card.removeEventListener('mouseleave', () => hoverTimeline.reverse());
+      // يجب التأكد من إزالة المستمعات بنفس الدالة
+      const playFunc = () => hoverTimeline.play();
+      const reverseFunc = () => hoverTimeline.reverse();
+      card.removeEventListener('mouseenter', playFunc);
+      card.removeEventListener('mouseleave', reverseFunc);
     };
   }, []);
 
   return (
-    <div ref={cardRef} className="menu-card-container">
+    <div ref={cardRef} className="menu-card-container flex flex-col">
       <Card className="group overflow-hidden bg-white border h-full flex flex-col rounded-lg shadow-sm transition-shadow duration-300">
         <div className="relative overflow-hidden">
           <img
             ref={imageRef}
+            data-flip-id={`image-${item.id}`} // ✨ إضافة flip-id للأنيميشن
             src={item.image}
             alt={item.name}
-            className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+            className="w-full h-48 object-cover"
           />
           {item.badge && (
             <Badge className="absolute top-3 right-3 z-10 bg-red-600 text-white border-none">
@@ -67,7 +68,8 @@ function MenuItemCard({ item, onAddToCart }) {
           
           <div className="flex items-center justify-between mt-auto pt-3">
             <span className="text-xl font-bold text-red-600">{item.price}</span>
-            <Button onClick={() => onAddToCart(item, imageRef.current)} className="bg-red-50 text-red-700 hover:bg-red-100 h-9 px-4 rounded-full">
+            {/* ✨ تمرير العنصر وصورة المرجع للدالة */}
+            <Button onClick={() => handleAddToCart(item, imageRef.current)} className="bg-red-50 text-red-700 hover:bg-red-100 h-9 px-4 rounded-full">
               <ShoppingCart className="w-4 h-4 mr-2" />
               <span>إضافة</span>
             </Button>
@@ -78,54 +80,97 @@ function MenuItemCard({ item, onAddToCart }) {
   );
 }
 
-// --- The Main Menu Section Component ---
-function MenuSection({ menuItems, onAddToCart }) {
+// --- المكون الرئيسي لقسم القائمة ---
+function MenuSection({ menuItems }) {
   const [activeCategory, setActiveCategory] = useState('all');
   const containerRef = useRef(null);
+  const filterContainerRef = useRef(null); // Ref لحاوية أزرار الفلتر
   const [filteredItems, setFilteredItems] = useState(menuItems);
 
-  // Natural entrance animation
+  // ✨ التحسين رقم 2: حركة دخول محسّنة للبطاقات
   useEffect(() => {
     const ctx = gsap.context(() => {
       gsap.from(containerRef.current.children, {
         scrollTrigger: {
           trigger: containerRef.current,
-          start: "top 90%", // Start a bit earlier for a smoother feel
+          start: "top 85%",
           toggleActions: "play none none none",
         },
-        autoAlpha: 0, // Fades in and handles visibility
-        y: 30,
-        stagger: 0.05, // Very fast stagger
-        duration: 0.5,
-        ease: 'power2.out'
+        autoAlpha: 0,
+        y: 40,
+        rotationX: -10, // إضافة دوران خفيف
+        stagger: {
+          amount: 0.4, // توزيع الحركة على مدى 0.4 ثانية
+          from: "start", // البدء من أول عنصر
+        },
+        duration: 0.8,
+        ease: 'power3.out'
       });
     }, containerRef);
     return () => ctx.revert();
   }, []);
 
-  // Handle filtering with a fast and non-intrusive Flip animation
-  const handleFilter = (category) => {
-    if (activeCategory === category) return; // Prevent re-running on the same category
+  // ✨ التحسين رقم 1 و 3: فلترة مع حركة مؤشر وتحسين حركة البطاقات
+  const handleFilter = (category, e) => {
+    if (activeCategory === category) return;
     setActiveCategory(category);
 
     const container = containerRef.current;
-    if (!container) return;
-
-    const state = Flip.getState(container.children);
+    const state = Flip.getState(container.children, { props: "filter" }); // حفظ حالة البطاقات
+    
+    // ✨ التحسين رقم 1: حركة المؤشر
+    const activePill = e.currentTarget;
+    const indicator = filterContainerRef.current.querySelector('.active-pill-indicator');
+    Flip.fit(indicator, activePill, { duration: 0.4, ease: "power2.inOut" });
 
     const newItems = category === 'all' 
       ? menuItems 
       : menuItems.filter(item => item.category === category);
     setFilteredItems(newItems);
 
+    // ✨ التحسين رقم 3: تحسين حركة Flip
     Flip.from(state, {
-      duration: 0.5, // Fast and responsive
-      ease: "power2.inOut",
-      stagger: 0.04,
+      duration: 0.6,
+      ease: "power3.inOut",
+      stagger: 0.05,
       absolute: true,
-      // A simple fade is the most natural transition
-      onEnter: elements => gsap.from(elements, { autoAlpha: 0, duration: 0.3 }),
-      onLeave: elements => gsap.to(elements, { autoAlpha: 0, duration: 0.3 }),
+      onEnter: elements => gsap.from(elements, { autoAlpha: 0, scale: 0.8, duration: 0.3 }),
+      onLeave: elements => gsap.to(elements, { autoAlpha: 0, scale: 1.2, duration: 0.3 }),
+    });
+  };
+
+  // ✨ التحسين رقم 4: أنيميشن "إضافة إلى السلة"
+  const handleAddToCart = (item, imageElement) => {
+    const cartIcon = document.querySelector('#main-cart-icon'); // يجب أن يكون لديك أيقونة سلة في الهيدر بهذا الـ ID
+    if (!cartIcon) {
+      console.warn("Cart icon with ID #main-cart-icon not found.");
+      return;
+    }
+
+    // 1. الحصول على حالة الصورة
+    const state = Flip.getState(imageElement, { props: "transform, objectFit" });
+
+    // 2. إنشاء نسخة وهمية من الصورة ووضعها فوق كل شيء
+    const flyingImage = imageElement.cloneNode(true);
+    flyingImage.classList.add('flying-image'); // كلاس للتحكم بالـ z-index والمظهر
+    document.body.appendChild(flyingImage);
+
+    // 3. تحريك النسخة الوهمية إلى أيقونة السلة باستخدام Flip
+    Flip.from(state, {
+      targets: flyingImage,
+      duration: 0.8,
+      ease: 'power2.in', // التسارع نحو الهدف
+      scale: true, // السماح بتغيير الحجم
+      onComplete: () => {
+        // 4. إخفاء النسخة الوهمية وإزالتها
+        gsap.to(flyingImage, {
+          autoAlpha: 0,
+          duration: 0.2,
+          onComplete: () => flyingImage.remove(),
+        });
+        // 5. إضافة تأثير لأيقونة السلة (اهتزاز بسيط)
+        gsap.fromTo(cartIcon, { scale: 1.2 }, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.5)' });
+      }
     });
   };
 
@@ -139,16 +184,17 @@ function MenuSection({ menuItems, onAddToCart }) {
           </p>
         </div>
 
-        <div className="flex justify-center mb-10">
-          <div className="flex gap-2 bg-white p-1.5 rounded-full shadow-sm border">
+        {/* ✨ التحسين رقم 1: حاوية الفلتر مع المؤشر */}
+        <div ref={filterContainerRef} className="flex justify-center mb-10">
+          <div className="relative flex gap-2 bg-white p-1.5 rounded-full shadow-sm border">
+            {/* هذا هو المؤشر الذي سيتحرك */}
+            <div className="active-pill-indicator absolute top-1.5 left-1.5 h-[calc(100%-12px)] bg-gray-800 rounded-full"></div>
             {categories.map(category => (
               <button
                 key={category.id}
-                onClick={() => handleFilter(category.id)}
-                className={`px-5 py-1.5 rounded-full transition-colors duration-300 text-sm font-medium ${
-                  activeCategory === category.id
-                    ? 'bg-gray-800 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-900'
+                onClick={(e) => handleFilter(category.id, e)}
+                className={`relative px-5 py-1.5 rounded-full transition-colors duration-300 text-sm font-medium z-10 ${
+                  activeCategory === category.id ? 'text-white' : 'text-gray-500 hover:text-gray-900'
                 }`}
               >
                 {category.name}
@@ -159,7 +205,7 @@ function MenuSection({ menuItems, onAddToCart }) {
 
         <div ref={containerRef} className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredItems.map(item => (
-            <MenuItemCard key={item.id} item={item} onAddToCart={onAddToCart} />
+            <MenuItemCard key={item.id} item={item} handleAddToCart={handleAddToCart} />
           ))}
         </div>
       </div>
